@@ -90,7 +90,7 @@ twiki_url = "https://twiki.cern.ch/twiki/bin/view/CMS/CmsHarvester"
 
 import os
 import sys
-import commands
+import subprocess
 import re
 import logging
 import optparse
@@ -1470,7 +1470,7 @@ class CMSHarvester(object):
             self.logger.debug("Checking if path `%s' is empty" % \
                               castor_dir)
             cmd = "rfdir %s" % castor_dir
-            (status, output) = commands.getstatusoutput(cmd)
+            (status, output) = subprocess.getstatusoutput(cmd)
             if status != 0:
                 msg = "Could not access directory `%s'" \
                       " !!! This is bad since I should have just" \
@@ -1630,18 +1630,18 @@ class CMSHarvester(object):
                 self.logger.debug("Checking if path `%s' exists" % \
                                   path)
                 cmd = "rfstat %s" % path
-                (status, output) = commands.getstatusoutput(cmd)
+                (status, output) = subprocess.getstatusoutput(cmd)
                 if status != 0:
                     # Path does not exist, let's try and create it.
                     self.logger.debug("Creating path `%s'" % path)
                     cmd = "nsmkdir -m 775 %s" % path
-                    (status, output) = commands.getstatusoutput(cmd)
+                    (status, output) = subprocess.getstatusoutput(cmd)
                     if status != 0:
                         msg = "Could not create directory `%s'" % path
                         self.logger.fatal(msg)
                         raise Error(msg)
                     cmd = "rfstat %s" % path
-                    (status, output) = commands.getstatusoutput(cmd)
+                    (status, output) = subprocess.getstatusoutput(cmd)
                 # Now check that it looks like a directory. If I'm not
                 # mistaken one can deduce this from the fact that the
                 # (octal) permissions string starts with `40' (instead
@@ -1656,7 +1656,7 @@ class CMSHarvester(object):
                 # (partial) path.
                 self.logger.debug("Checking permissions for path `%s'" % path)
                 cmd = "rfstat %s" % path
-                (status, output) = commands.getstatusoutput(cmd)
+                (status, output) = subprocess.getstatusoutput(cmd)
                 if status != 0:
                     msg = "Could not obtain permissions for directory `%s'" % \
                           path
@@ -1690,7 +1690,7 @@ class CMSHarvester(object):
                                       "to %s (were %s)" % \
                                       (path, permissions_new, permissions))
                     cmd = "rfchmod %s %s" % (permissions_new, path)
-                    (status, output) = commands.getstatusoutput(cmd)
+                    (status, output) = subprocess.getstatusoutput(cmd)
                     if status != 0:
                         msg = "Could not change permissions for path `%s' " \
                               "to %s" % (path, permissions_new)
@@ -1830,7 +1830,7 @@ class CMSHarvester(object):
                       "CEStatus=Production," \
                       "CloseSE=%s'" % \
                       (cmssw_version, se_name)
-                (status, output) = commands.getstatusoutput(cmd)
+                (status, output) = subprocess.getstatusoutput(cmd)
                 if status != 0:
                     self.logger.error("Could not check site information " \
                                       "for site `%s'" % se_name)
@@ -2373,7 +2373,7 @@ class CMSHarvester(object):
 ##        # NOTE: Not ideal, I know, but it reduces the amount of
 ##        #       complaints I get...
 ##        cmd = "dbs search --query=\"find dataset where dataset = impossible\""
-##        (status, output) = commands.getstatusoutput(cmd)
+##        (status, output) = subprocess.getstatusoutput(cmd)
 ##        pdb.set_trace()
 ##        if status != 0 or \
 ##           output.lower().find("unsupported api call") > -1:
@@ -3664,7 +3664,7 @@ class CMSHarvester(object):
                 runs_todo = []
                 print("Reading runs from file /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/harvesting/%s" %self.todofile)
                 cmd="grep %s /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/harvesting/%s | cut -f5 -d' '" %(dataset_name,self.todofile)
-                (status, output)=commands.getstatusoutput(cmd)
+                (status, output)=subprocess.getstatusoutput(cmd)
                 for run in runs:
                     run_str="%s" %run
                     if run_str in output:
@@ -4326,7 +4326,7 @@ class CMSHarvester(object):
         """
 
         cmd="who i am | cut -f1 -d' '"
-        (status, output)=commands.getstatusoutput(cmd)
+        (status, output)=subprocess.getstatusoutput(cmd)
         UserName = output
 
         if self.caf_access == True:
@@ -4355,7 +4355,7 @@ class CMSHarvester(object):
                                  ["castor_path"][run]
 
                 cmd = "rfdir %s" % castor_dir
-                (status, output) = commands.getstatusoutput(cmd)
+                (status, output) = subprocess.getstatusoutput(cmd)
 
                 if len(output) <= 0:
 
@@ -4564,7 +4564,7 @@ class CMSHarvester(object):
 
         cmd = "cmscond_tagtree_list -c %s -T %s" % \
               (connect_name, globaltag)
-        (status, output) = commands.getstatusoutput(cmd)
+        (status, output) = subprocess.getstatusoutput(cmd)
         if status != 0 or \
                output.find("error") > -1:
             msg = "Could not check existence of GlobalTag `%s' in `%s'" % \
@@ -4609,7 +4609,7 @@ class CMSHarvester(object):
                               connect_name)
         cmd = "cmscond_tagtree_list -c %s -T %s -n %s" % \
               (connect_name, globaltag, ref_hist_key)
-        (status, output) = commands.getstatusoutput(cmd)
+        (status, output) = subprocess.getstatusoutput(cmd)
         if status != 0 or \
                output.find("error") > -1:
             msg = "Could not check existence of key `%s'" % \
@@ -4658,7 +4658,7 @@ class CMSHarvester(object):
 
         cmd = "cmscond_list_iov -c %s" % \
               connect_name
-        (status, output) = commands.getstatusoutput(cmd)
+        (status, output) = subprocess.getstatusoutput(cmd)
         if status != 0:
             msg = "Could not check existence of tag `%s' in `%s'" % \
                   (tag_name, connect_name)
@@ -4682,41 +4682,6 @@ class CMSHarvester(object):
 
         # End of check_ref_hist_tag.
         return tag_exists
-
-    ##########
-
-    def create_es_prefer_snippet(self, dataset_name):
-        """Build the es_prefer snippet for the reference histograms.
-
-        The building of the snippet is wrapped in some care-taking
-        code that figures out the name of the reference histogram set
-        and makes sure the corresponding tag exists.
-
-        """
-
-        # Figure out the name of the reference histograms tag.
-        # NOTE: The existence of these tags has already been checked.
-        ref_hist_tag_name = self.ref_hist_mappings[dataset_name]
-
-        connect_name = self.frontier_connection_name["refhists"]
-        connect_name += self.db_account_name_cms_cond_dqm_summary()
-        record_name = "DQMReferenceHistogramRootFileRcd"
-
-        # Build up the code snippet.
-        code_lines = []
-        code_lines.append("from CondCore.DBCommon.CondDBSetup_cfi import *")
-        code_lines.append("process.ref_hist_source = cms.ESSource(\"PoolDBESSource\", CondDBSetup,")
-        code_lines.append("                                       connect = cms.string(\"%s\")," % connect_name)
-        code_lines.append("                                       toGet = cms.VPSet(cms.PSet(record = cms.string(\"%s\")," % record_name)
-        code_lines.append("                                                                  tag = cms.string(\"%s\"))," % ref_hist_tag_name)
-        code_lines.append("                                                         )")
-        code_lines.append("                                       )")
-        code_lines.append("process.es_prefer_ref_hist_source = cms.ESPrefer(\"PoolDBESSource\", \"ref_hist_source\")")
-
-        snippet = "\n".join(code_lines)
-
-        # End of create_es_prefer_snippet.
-        return snippet
 
     ##########
 
@@ -4907,11 +4872,11 @@ class CMSHarvester(object):
 ##            # To be removed in production version.
 ##            customisations.append("import pdb")
 ##            # BUG BUG BUG end
-##            customisations.append("import commands")
+##            customisations.append("import subprocess")
 ##            customisations.append("import os")
 ##            customisations.append("castor_dir = \"%s\"" % castor_dir)
 ##            customisations.append("cmd = \"rfdir %s\" % castor_dir")
-##            customisations.append("(status, output) = commands.getstatusoutput(cmd)")
+##            customisations.append("(status, output) = subprocess.getstatusoutput(cmd)")
 ##            customisations.append("if status != 0:")
 ##            customisations.append("    print \"ERROR\"")
 ##            customisations.append("    raise Exception, \"ERROR\"")

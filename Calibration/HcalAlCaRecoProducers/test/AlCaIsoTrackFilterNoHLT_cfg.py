@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 from Configuration.Eras.Era_Run2_2018_cff import Run2_2018
 
-process = cms.Process('RECO',Run2_2018)
+process = cms.Process('ALCARECO',Run2_2018)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -18,17 +18,20 @@ process.load('Configuration.StandardSequences.AlCaRecoStreams_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
+if hasattr(process,'MessageLogger'):
+    process.MessageLogger.HcalIsoTrackX=dict()
+    process.MessageLogger.HcalIsoTrack=dict()
+
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(-1)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        'file:/afs/cern.ch/user/h/huwang/work/public/for_Sunanda/UL_1TeV_pion_gun_RAW_0_0.root',
-#        "root://cmseos.fnal.gov//eos/uscms/store/user/lpcrutgers/huiwang/HCAL/UL_DoublePion_E-50_RAW_noPU-2020-12-25/UL_1TeV_pion_gun_RAW_0_0.root"
+        'file:/afs/cern.ch/user/h/huwang/work/public/for_Sunanda/RECO_data.root',
     ),
-    #skipEvents = cms.untracked.uint32(516),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -54,7 +57,7 @@ process.ALCARECOStreamHcalCalIsoTrkFilter = cms.OutputModule("PoolOutputModule",
     ),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.OutALCARECOHcalCalIsoTrkFilter.outputCommands,
-    fileName = cms.untracked.string('PoolOutput.root'),
+    fileName = cms.untracked.string('oldPoolOutput.root'),
 )
 
 # Additional output definition
@@ -69,8 +72,16 @@ process.reconstruction_step = cms.Path(process.reconstruction)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.ALCARECOStreamHcalCalIsoTrkFilterOutPath = cms.EndPath(process.ALCARECOStreamHcalCalIsoTrkFilter)
 
+process.alcaIsoTracksFilter.debugEvents = [640818633, 640797426, 641251898]
+#process.alcaIsoTracksFilter.debugEvents = [641031809, 641092744, 640862532,
+#                                           640874735, 641845581, 641144982,
+#                                           641124886, 641240201, 640856725,
+#                                           641709599, 641406943, 640794164,
+#                                           641820644, 641053143, 641458751,
+#                                           641554667, 641621481]
+
 # Schedule definition
-process.schedule = cms.Schedule(process.raw2digi_step,process.reconstruction_step,process.pathALCARECOHcalCalIsoTrkFilterNoHLT,process.endjob_step,process.ALCARECOStreamHcalCalIsoTrkFilterOutPath)
+process.schedule = cms.Schedule(process.pathALCARECOHcalCalIsoTrkFilterNoHLT,process.endjob_step,process.ALCARECOStreamHcalCalIsoTrkFilterOutPath)
 
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)

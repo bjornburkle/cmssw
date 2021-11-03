@@ -497,6 +497,11 @@ steps['RunCosmics2021']={'INPUT':InputInfo(dataSet='/ExpressCosmics/Commissionin
 ##Run 344518 @ 0T 2021CRUZET
 steps['RunCosmics2021CRUZET']={'INPUT':InputInfo(dataSet='/Cosmics/Commissioning2021-v1/RAW',label='2021CRUZET',run=[344518],events=100000,location='STD')}
 
+#### run3 Splash ####
+##Run 345881
+steps['RunMinimumBias2021Splash']={'INPUT':InputInfo(dataSet='/MinimumBias/Commissioning2021-v1/RAW',label='2021Splash',ls={345881: [782, 790, 796, 801, 1031, 1037]},events=100000,location='STD')}
+
+
 #### Test of lumi section boundary crossing with run2 2018D ####
 Run2018Dml1={320822: [[1,1]] , 320823: [[1,1]]}
 Run2018Dml2={320822: [[1,2]]}
@@ -1904,6 +1909,9 @@ steps['RECODR2_25ns']=merge([{'--scenario':'pp','--conditions':'auto:run2_data_r
 steps['RECODR2_2016']=merge([{'--scenario':'pp','--conditions':'auto:run2_data_relval','--era':'Run2_2016','--customise':'Configuration/DataProcessing/RecoTLR.customisePostEra_Run2_2016'},dataReco])
 steps['RECODR2_2017']=merge([{'--scenario':'pp','--conditions':'auto:run2_data_relval','--era':'Run2_2017','--customise':'Configuration/DataProcessing/RecoTLR.customisePostEra_Run2_2017'},dataReco])
 steps['RECODR2_2018']=merge([{'--scenario':'pp','--conditions':'auto:run2_data_relval','--era':'Run2_2018','--customise':'Configuration/DataProcessing/RecoTLR.customisePostEra_Run2_2018'},dataReco])
+#Run 3
+steps['RECODR3']=merge([{'--scenario':'pp','--conditions':'auto:run3_data_prompt','--era':'Run3','--customise':'Configuration/DataProcessing/RecoTLR.customisePostEra_Run3'},dataReco])
+steps['RECODR3Splash']=merge([{'-n': 2},steps['RECODR3']])
 
 steps['RECODR2AlCaEle']=merge([{'--scenario':'pp','--conditions':'auto:run2_data_relval','--customise':'Configuration/DataProcessing/RecoTLR.customisePromptRun2',},dataRecoAlCaCalo])
 
@@ -2095,6 +2103,17 @@ steps['TIER0EXPPPSCAL']={'-s':'RAW2DIGI,L1Reco,ALCAPRODUCER:PPSCalTrackBasedSel,
                           '--eventcontent':'ALCARECO',
                           }
 
+steps['TIER0EXPPPSCALALIG']={'-s':'RAW2DIGI,L1Reco,ALCAPRODUCER:PPSCalTrackBasedSel,ENDJOB',
+                             '-n':1000,
+                             '--process':'ALCARECO',
+                             '--scenario': 'pp',
+                             '--era':'Run2_2017',
+                             '--conditions':'auto:run2_data',
+                             '--data': '',
+                             '--datatier':'ALCARECO',
+                             '--eventcontent':'ALCARECO',
+                             }
+
 steps['ALCASPLITHPBS']={'-s':'ALCAOUTPUT:TkAlMinBias,ALCA:PromptCalibProdBeamSpotHP+PromptCalibProdBeamSpotHPLowPU',
                         '--scenario':'pp',
                         '--data':'',
@@ -2125,6 +2144,17 @@ steps['ALCASPLITPPSCAL']={'-s':'ALCAOUTPUT:PPSCalTrackBasedSel,ALCA:PPSTimingCal
                         '--conditions':'auto:run2_data',
                         '--triggerResultsProcess':'RECO',
                         }
+
+steps['ALCASPLITPPSALIG']={'-s':'ALCAOUTPUT:PPSCalTrackBasedSel,ALCA:PPSAlignment',
+                           '-n':1000,
+                           '--scenario':'pp',
+                           '--data':'',
+                           '--era':'Run2_2017',
+                           '--datatier':'ALCARECO',
+                           '--eventcontent':'ALCARECO',
+                           '--conditions':'auto:run3_data_express',
+                           '--triggerResultsProcess':'RECO',
+                           }
 
 steps['ALCAHARVDHPBS']={'-s':'ALCAHARVEST:%s'%(autoPCL['PromptCalibProdBeamSpotHP']),
                         #'--conditions':'auto:run2_data_promptlike',
@@ -2164,6 +2194,13 @@ steps['ALCAHARVDPPSCAL']={'-s':'ALCAHARVEST:%s'%(autoPCL['PromptCalibProdPPS']),
                         '--data':'',
                         '--era':'Run2_2017',
                         '--filein':'file:PPSTimingCalib.root'}
+
+steps['ALCAHARVDPPSALIG']={'-s':'ALCAHARVEST:%s'%(autoPCL['PromptCalibProdPPSAlig']),
+                           '--conditions':'auto:run3_data_express',
+                           '--scenario':'pp',
+                           '--data':'',
+                           '--era':'Run2_2017',
+                           '--filein':'file:PPSAlignment.root'}
 
 steps['RECOCOSD']=merge([{'--scenario':'cosmics',
                           '-s':'RAW2DIGI,L1Reco,RECO,DQM',
@@ -2445,7 +2482,7 @@ steps['RECOMIN']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,RECOSIM,EI,ALCA:SiStripCalZe
 steps['RECOMINUP15']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,RECOSIM,EI,ALCA:SiStripCalZeroBias+SiStripCalMinBias,VALIDATION,DQM'},step3Up2015Defaults])
 steps['RECOAODUP15']=merge([{'--datatier':'AODSIM,MINIAODSIM,DQMIO','--eventcontent':'AODSIM,MINIAODSIM,DQM'},step3Up2015Defaults])
 
-steps['RECODDQM']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,EI,DQM:@common+@muon+@hcal+@jetmet+@ecal'},steps['RECOD']])
+steps['RECODDQM']=merge([{'-s':'RAW2DIGI,L1Reco,RECO,EI,DQM:@allForPrompt'},steps['RECOD']])
 
 steps['RECOPU1']=merge([PU,steps['RECO']])
 steps['RECOPU2']=merge([PU2,steps['RECO']])
@@ -2608,13 +2645,13 @@ steps['ALCAPROMPT']={'-s':'ALCA:PromptCalibProd',
                      '--conditions':'auto:run1_data',
                      '--datatier':'ALCARECO',
                      '--eventcontent':'ALCARECO'}
-steps['ALCAEXP']={'-s':'ALCAOUTPUT:SiStripCalZeroBias+TkAlMinBias+Hotline+LumiPixelsMinBias+AlCaPCCZeroBiasFromRECO+AlCaPCCRandomFromRECO,ALCA:PromptCalibProd+PromptCalibProdSiStrip+PromptCalibProdSiStripGains+PromptCalibProdSiStripGainsAAG+PromptCalibProdSiPixelAli+PromptCalibProdSiPixel',
+steps['ALCAEXP']={'-s':'ALCAOUTPUT:SiStripCalZeroBias+TkAlMinBias+Hotline+LumiPixelsMinBias+AlCaPCCZeroBiasFromRECO+AlCaPCCRandomFromRECO+SiPixelCalSingleMuon,ALCA:PromptCalibProd+PromptCalibProdSiStrip+PromptCalibProdSiStripGains+PromptCalibProdSiStripGainsAAG+PromptCalibProdSiPixelAli+PromptCalibProdSiPixel+PromptCalibProdSiPixelLorentzAngle',
                   '--conditions':'auto:run1_data',
                   '--datatier':'ALCARECO',
                   '--eventcontent':'ALCARECO',
                   '--triggerResultsProcess': 'RECO'}
 
-steps['ALCAEXPRUN2']={'-s':'ALCAOUTPUT:SiStripCalZeroBias+TkAlMinBias+LumiPixelsMinBias+AlCaPCCZeroBiasFromRECO+AlCaPCCRandomFromRECO+SiPixelCalZeroBias,ALCA:PromptCalibProd+PromptCalibProdSiStrip+PromptCalibProdSiStripGains+PromptCalibProdSiStripGainsAAG+PromptCalibProdSiPixelAli+PromptCalibProdSiPixel',
+steps['ALCAEXPRUN2']={'-s':'ALCAOUTPUT:SiStripCalZeroBias+TkAlMinBias+LumiPixelsMinBias+AlCaPCCZeroBiasFromRECO+AlCaPCCRandomFromRECO+SiPixelCalZeroBias+SiPixelCalSingleMuon,ALCA:PromptCalibProd+PromptCalibProdSiStrip+PromptCalibProdSiStripGains+PromptCalibProdSiStripGainsAAG+PromptCalibProdSiPixelAli+PromptCalibProdSiPixel+PromptCalibProdSiPixelLorentzAngle',
                   '--conditions':'auto:run2_data',
                   '--datatier':'ALCARECO',
                   '--eventcontent':'ALCARECO',
@@ -2712,6 +2749,12 @@ steps['ALCAHARVD6']={'-s':'ALCAHARVEST:%s'%(autoPCL['PromptCalibProdSiPixel']),
                      '--data':'',
                      '--filein':'file:PromptCalibProdSiPixel.root'}
 
+steps['ALCAHARVD7']={'-s':'ALCAHARVEST:%s'%(autoPCL['PromptCalibProdSiPixelLA']),
+                     '--conditions':'auto:run1_data',
+                     '--scenario':'pp',
+                     '--data':'',
+                     '--filein':'file:PromptCalibProdSiPixelLorentzAngle.root'}
+
 steps['ALCAHARVD5HI']=merge([{'--scenario':'HeavyIons'},steps['ALCAHARVD5']])
 steps['ALCAHARVDTE']={'-s':'ALCAHARVEST:%s'%(autoPCL['PromptCalibProdEcalPedestals']),
                      '--conditions':'auto:run2_data',
@@ -2780,6 +2823,10 @@ steps['HARVEST2018_L1TEgDQM_MULTIRUN'] = merge([ {
         '--filein':"file:step6_inDQM.root,file:step3_inDQM.root",
     }, steps['HARVEST2018_L1TEgDQM'] ])
 
+
+#RUN3
+steps['HARVESTDR3'] = merge([ {'--conditions':'auto:run3_data_prompt','--era':'Run3'}, steps['HARVESTD'] ])
+
 steps['DQMHLTonAOD_2017']={
     '-s':'DQM:offlineHLTSourceOnAOD', ### DQM-only workflow on AOD input: for HLT
     '--conditions':'auto:run2_data',
@@ -2808,7 +2855,7 @@ steps['DQMHLTonRAWAOD_2017']={
 
 steps['HARVESTDQMHLTonAOD_2017'] = merge([ {'--filein':'file:DQMHLTonAOD.root','-s':'HARVESTING:hltOfflineDQMClient'}, steps['HARVEST2017'] ]) ### Harvesting step for the DQM-only workflow
 
-steps['HARVESTDDQM']=merge([{'-s':'HARVESTING:@common+@muon+@hcal+@jetmet+@ecal'},steps['HARVESTD']])
+steps['HARVESTDDQM']=merge([{'-s':'HARVESTING:@allForPrompt'},steps['HARVESTD']])
 
 steps['HARVESTDfst2']=merge([{'--filein':'file:step2_inDQM.root'},steps['HARVESTDR1']])
 
@@ -2863,7 +2910,6 @@ steps['HARVEST']={'-s':'HARVESTING:validationHarvestingNoHLT+dqmHarvestingFakeHL
                    '--mc':'',
                    '--filetype':'DQM',
                    '--scenario':'pp'}
-
 
 steps['HARVESTCOS']={'-s':'HARVESTING:dqmHarvestingFakeHLT',
                      '--conditions':'auto:run1_mc',
@@ -3091,6 +3137,7 @@ steps['COPYPASTE']={'-s':'NONE',
                     '--conditions':'auto:run1_mc',
                     '--output':'\'[{"t":"RAW","e":"ALL"}]\'',
                     '--customise_commands':'"process.ALLRAWoutput.fastCloning=cms.untracked.bool(False)"'}
+steps['COPYPASTER3'] = merge([{'--era' : 'Run3'}, steps['COPYPASTE']])
 
 #miniaod
 stepMiniAODDefaults = { '-s'              : 'PAT',
@@ -3280,7 +3327,7 @@ steps['NanoFullHEfail']={'-s':'NANO',
                          '--datatier':'NANOAODSIM',
                          '--eventcontent':'NANOEDMAODSIM',
                          '--filein':'file:step3_inMINIAODSIM.root'}
-
+                         
 #################################################################################
 ####From this line till the end of the file :
 ####UPGRADE WORKFLOWS IN PREPARATION - Gaelle's sandbox -
@@ -3305,6 +3352,7 @@ defaultDataSets['2023']='CMSSW_12_0_0_pre4-120X_mcRun3_2023_realistic_v2-v'
 defaultDataSets['2024']='CMSSW_12_0_0_pre4-120X_mcRun3_2024_realistic_v2-v'
 defaultDataSets['2026D49']='CMSSW_12_0_0_pre4-113X_mcRun4_realistic_v7_2026D49noPU-v'
 defaultDataSets['2026D76']='CMSSW_12_0_0_pre4-113X_mcRun4_realistic_v7_2026D76noPU-v'
+defaultDataSets['2026D77']='CMSSW_12_1_0_pre2-113X_mcRun4_realistic_v7_2026D77noPU-v'
 
 puDataSets = {}
 for key, value in defaultDataSets.items(): puDataSets[key+'PU'] = value
@@ -3461,6 +3509,14 @@ for year,k in [(year,k) for year in upgradeKeys for k in upgradeKeys[year]]:
                                     '--filetype':'DQM',
                                     }
 
+    upgradeStepDict['HARVESTRecNan'][k]={'-s':'HARVESTING:@standardValidation+@standardDQM+@ExtraHLT+@miniAODValidation+@miniAODDQM+@nanoAODDQM',
+                                          '--conditions':gt,
+                                          '--mc':'',
+                                          '--geometry' : geom,
+                                          '--scenario' : 'pp',
+                                          '--filetype':'DQM',
+                                          }
+                                    
     upgradeStepDict['HARVESTFakeHLT'][k]={'-s':'HARVESTING:@standardValidationNoHLT+@standardDQMFakeHLT+@miniAODValidation+@miniAODDQM',
                                     '--conditions':gt,
                                     '--mc':'',
@@ -3495,15 +3551,23 @@ for year,k in [(year,k) for year in upgradeKeys for k in upgradeKeys[year]]:
                                     '--scenario' : 'pp'
                                     }
 
-    upgradeStepDict['Nano'][k] = {'-s':'NANO',
+    upgradeStepDict['Nano'][k] = {'-s':'NANO,DQM:@nanoAODDQM',
                                       '--conditions':gt,
-                                      '--datatier':'NANOAODSIM',
+                                      '--datatier':'NANOAODSIM,DQMIO',
                                       '-n':'10',
-                                      '--eventcontent':'NANOEDMAODSIM',
+                                      '--eventcontent':'NANOEDMAODSIM,DQM',
                                       '--filein':'file:step3_inMINIAODSIM.root',
                                       '--geometry' : geom
                                       }
-
+                                      
+    upgradeStepDict['RecNan'][k] = {'-s':'RAW2DIGI,L1Reco,RECO,RECOSIM,EI,PAT,NANO,VALIDATION:@standardValidation+@miniAODValidation,DQM:@standardDQM+@ExtraHLT+@miniAODDQM+@nanoAODDQM',
+                                      '--conditions':gt,
+                                      '--datatier':'GEN-SIM-RECO,MINIAODSIM,NANOAODSIM,DQMIO',
+                                      '-n':'10',
+                                      '--eventcontent':'RECOSIM,MINIAODSIM,NANOEDMAODSIM,DQM',
+                                      '--geometry' : geom
+                                      }
+                                      
     # setup baseline and variations
     for specialType,specialWF in upgradeWFs.items():
         specialWF.setup(upgradeStepDict, k, upgradeProperties[year][k])

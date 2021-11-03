@@ -51,7 +51,7 @@ namespace edm {
 
     // Prestage the files
     for (setAtFirstFile(); !noMoreFiles(); setAtNextFile()) {
-      StorageFactory::get()->stagein(fileNames()[0]);
+      storage::StorageFactory::get()->stagein(fileNames()[0]);
     }
     // Open the first file.
     for (setAtFirstFile(); !noMoreFiles(); setAtNextFile()) {
@@ -69,7 +69,7 @@ namespace edm {
 
   RootPrimaryFileSequence::~RootPrimaryFileSequence() {}
 
-  void RootPrimaryFileSequence::endJob() { closeFile_(); }
+  void RootPrimaryFileSequence::endJob() { closeFile(); }
 
   std::shared_ptr<FileBlock> RootPrimaryFileSequence::readFile_() {
     std::shared_ptr<FileBlock> fileBlock;
@@ -246,7 +246,7 @@ namespace edm {
   // Rewind to before the first event that was read.
   void RootPrimaryFileSequence::rewind_() {
     if (!atFirstFile()) {
-      closeFile_();
+      closeFile();
       setAtFirstFile();
     }
     if (!rootFile()) {
