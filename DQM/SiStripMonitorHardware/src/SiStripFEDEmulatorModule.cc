@@ -11,7 +11,7 @@
 
 #include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESWatcher.h"
@@ -54,7 +54,7 @@ namespace sistrip {
   // Class declaration
   //
 
-  class FEDEmulatorModule : public edm::EDProducer {
+  class FEDEmulatorModule : public edm::one::EDProducer<> {
   public:
     explicit FEDEmulatorModule(const edm::ParameterSet&);
     ~FEDEmulatorModule() override;

@@ -5,7 +5,7 @@
 // CMSSW includes
 #include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -55,7 +55,7 @@ namespace sistrip {
      * from the Event and creates EDProducts containing StripDigis from spy channel 
      * data.
      */
-  class SpyUnpackerModule : public edm::EDProducer {
+  class SpyUnpackerModule : public edm::one::EDProducer<> {
   public:
     SpyUnpackerModule(const edm::ParameterSet&);
     ~SpyUnpackerModule() override;

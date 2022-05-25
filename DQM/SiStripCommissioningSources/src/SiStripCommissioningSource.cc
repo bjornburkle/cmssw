@@ -80,11 +80,14 @@ SiStripCommissioningSource::SiStripCommissioningSource(const edm::ParameterSet& 
   digiVirginRawToken_ = mayConsume<edm::DetSetVector<SiStripRawDigi> >(edm::InputTag(inputModuleLabel_, "VirginRaw"));
   digiFineDelaySelectionToken_ =
       mayConsume<edm::DetSetVector<SiStripRawDigi> >(edm::InputTag(inputModuleLabel_, "FineDelaySelection"));
-  digiReorderedToken_ = mayConsume<edm::DetSetVector<SiStripRawDigi> >(edm::InputTag(inputModuleLabel_, "Reordered"));
+  //digiReorderedToken_ = mayConsume<edm::DetSetVector<SiStripRawDigi> >(edm::InputTag(inputModuleLabel_, "Reordered"));
   /////////////////
-  if (not isSpy_)
+  if (not isSpy_) {
+    digiReorderedToken_ = mayConsume<edm::DetSetVector<SiStripRawDigi> >(edm::InputTag(inputModuleLabel_, "Reordered"));
     digiScopeModeToken_ = mayConsume<edm::DetSetVector<SiStripRawDigi> >(edm::InputTag(inputModuleLabel_, "ScopeMode"));
+  }
   else {
+    digiReorderedToken_ = mayConsume<edm::DetSetVector<SiStripRawDigi> >(edm::InputTag(inputModuleLabel_, "SpyReordered"));
     digiScopeModeToken_ =
         mayConsume<edm::DetSetVector<SiStripRawDigi> >(edm::InputTag(inputModuleLabelAlt_, "ScopeRawDigis"));
     clustersToken_ = mayConsume<edmNew::DetSetVector<SiStripCluster> >(edm::InputTag(inputClusterLabel_));
@@ -238,7 +241,9 @@ void SiStripCommissioningSource::endJob() {
   if (!dir.empty()) {
     ss << dir << "/";
   } else {
-    ss << "/tmp/";
+    //ss << "/tmp/";
+    //ss << "/afs/cern.ch/work/b/bburkle/public/CMSSW_GitHub/CMSSW_12_1_0/src/DQM/"; //revert before PR
+    ss << "/eos/user/b/bburkle/SpyNoise/346345/"; //revert before PR
   }
 
   // Add filename with run number, host ip, pid and .root extension
@@ -323,12 +328,40 @@ void SiStripCommissioningSource::analyze(const edm::Event& event, const edm::Eve
   }
 
   // Create commissioning task objects
-  if (!tasksExist_) {
-    createTask(summary.product(), setup);
-  } else {
-    for (auto& v : tasks_) {
-      for (auto& t : v) {
-        t->eventSetup(&setup);
+  if (!isSpy_) {
+    if (!tasksExist_) {
+      createTask(summary.product(), setup);
+    } else {
+      for (auto& v : tasks_) {
+        for (auto& t : v) {
+          t->eventSetup(&setup);
+        }
+      }
+    }
+  }
+  else {
+    if ( !tasksExist_ ) { createTask( summary.product(), setup ); }
+    else {
+      if(task_ == sistrip::FINE_DELAY){
+        if(tasks_[0][0])
+      tasks_[0][0]->eventSetup(&setup);
+      }
+      else if (task_ == sistrip::APV_LATENCY) {
+        for (uint16_t partition = 0; partition < 4; ++partition)
+      if(tasks_[0][partition])
+        tasks_[0][partition]->eventSetup(&setup);
+      }
+      else{
+        // Iterate through FED ids and channels                                                                                                                                                        
+        for (auto ifed = fedCabling_->fedIds().begin() ; ifed != fedCabling_->fedIds().end(); ++ifed ) {
+      // Iterate through connected FED channels                                                                                                                                                      
+        auto conns = fedCabling_->fedConnections(*ifed);
+        for (auto iconn = conns.begin() ; iconn != conns.end(); ++iconn ) {
+          if ( !iconn->isConnected() ) { continue; }
+          if (tasks_[iconn->fedId()][iconn->fedCh()])
+          tasks_[iconn->fedId()][iconn->fedCh()]->eventSetup(&setup);
+        }
+        }
       }
     }
   }
@@ -338,6 +371,8 @@ void SiStripCommissioningSource::analyze(const edm::Event& event, const edm::Eve
   edm::Handle<edm::DetSetVector<SiStripRawDigi> > rawAlt;
   edm::Handle<edmNew::DetSetVector<SiStripCluster> > cluster;
 
+  std::cout << "Checking task type" << std::endl;
+  std::cout << "  " << task_ << std::endl;
   if (task_ == sistrip::DAQ_SCOPE_MODE) {  // scop-mode runs
     if (not isSpy_ and
         summary->fedReadoutMode() == FED_VIRGIN_RAW) {  // if the readout is virgin raw just take the VR digis
@@ -347,8 +382,9 @@ void SiStripCommissioningSource::analyze(const edm::Event& event, const edm::Eve
     } else if (isSpy_) {  // spy case take both re-ordered and scope mode
       event.getByToken(digiScopeModeToken_, rawAlt);
       event.getByToken(digiReorderedToken_, raw);
-      if (not inputClusterLabel_.empty())
+      if (not inputClusterLabel_.empty()) {
         event.getByToken(clustersToken_, cluster);
+      }
     } else {
       std::stringstream ss;
       ss << "[SiStripCommissioningSource::" << __func__ << "]"
@@ -376,6 +412,7 @@ void SiStripCommissioningSource::analyze(const edm::Event& event, const edm::Eve
     edm::LogWarning(mlDqmSource_) << ss.str();
     return;
   }
+
 
   // Check for NULL pointer to digi container
   if (not raw.isValid()) {
@@ -406,10 +443,12 @@ void SiStripCommissioningSource::analyze(const edm::Event& event, const edm::Eve
   }
 
   if (!cablingTask_) {
+    std::cout << "    FILLING HISTO" << std::endl;
     fillHistos(summary.product(), *raw, *rawAlt, *cluster);
   } else {
     fillCablingHistos(summary.product(), *raw);
   }
+  std::cout << "Finished analyze" << std::endl;
 }
 
 // ----------------------------------------------------------------------------
@@ -694,6 +733,8 @@ void SiStripCommissioningSource::createRunNumber() {
 // -----------------------------------------------------------------------------
 //
 void SiStripCommissioningSource::createTask(const SiStripEventSummary* const summary, const edm::EventSetup& setup) {
+
+  std::cout << "Creating Task" << std::endl;
   // Set commissioning task to default ("undefined") value
   task_ = sistrip::UNDEFINED_RUN_TYPE;
 

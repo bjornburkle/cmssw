@@ -4,7 +4,7 @@
 #include <utility>
 
 #include "FWCore/Utilities/interface/EDGetToken.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -32,7 +32,7 @@
 
 namespace sistrip {
 
-  class SpyDigiConverterModule : public edm::EDProducer {
+  class SpyDigiConverterModule : public edm::one::EDProducer<> {
   public:
     SpyDigiConverterModule(const edm::ParameterSet&);
     ~SpyDigiConverterModule() override;
